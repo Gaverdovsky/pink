@@ -1,0 +1,18 @@
+// Для импорта в диспетчер подключений: @import './src/blocks/list-nums/list-nums--main.less';
+
+@import '../../less/variables.less';     // только для удобства обращения к переменным
+
+
+.list-nums {
+
+  &--main {
+    & > li {
+
+      &:before {
+        color: #fff;
+        background-color: @color-main;
+      }
+    }
+  }
+
+}
