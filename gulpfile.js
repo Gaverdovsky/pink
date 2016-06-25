@@ -43,7 +43,7 @@ const port = process.env.port ? process.env.port : 3000;
 // Файлы компилируемых компонентов
 let blocks = getComponentsFiles();
 
-// Вывод в консоль информации о взятых в сборку файлах (без LESS)
+// Вывод в консоль информации о взятых в сборку файлах (без SCSS)
 if(blocks.js.length) {
   console.log('---------- В сборку и обработку взяты JS-файлы (указана последовательность):');
   console.log(blocks.js);
@@ -59,13 +59,13 @@ if(blocks.additionalCss.length) {
 
 
 
-// Компиляция LESS
+// Компиляция SCSS
 gulp.task('scss', function () {
-  console.log('---------- Компиляция LESS');
+  console.log('---------- Компиляция SCSS');
   return gulp.src(dirs.source + '/scss/style.scss')
     .pipe(gulpIf(isDev, sourcemaps.init()))
-    .pipe(debug({title: "LESS:"}))
-    .pipe(less())
+    .pipe(debug({title: "SCSS:"}))
+    .pipe(scss())
     .on('error', notify.onError(function(err){
       return {
         title: 'Styles compilation error',
@@ -89,11 +89,11 @@ gulp.task('scss', function () {
     .pipe(browserSync.stream());
 });
 
-// Компиляция LESS для документации
-gulp.task('less:docs', function () {
-  console.log('---------- Компиляция LESS для документации');
-  return gulp.src('src/docs-files/docs.less')
-    .pipe(less())
+// Компиляция SCSS для документации
+gulp.task('scss:docs', function () {
+  console.log('---------- Компиляция SCSS для документации');
+  return gulp.src('src/docs-files/docs.scss')
+    .pipe(scss())
     .on('error', notify.onError(function(err){
       return {
         title: 'Styles compilation error',
@@ -263,7 +263,7 @@ gulp.task('clean', function () {
 gulp.task('build', gulp.series(
   'clean',
   'svgstore',
-  gulp.parallel('less', 'less:docs', 'copy:css', 'img', 'js', 'js:copy'),
+  gulp.parallel('scss', 'scss:docs', 'copy:css', 'img', 'js', 'js:copy'),
   'html'
 ));
 
@@ -279,8 +279,8 @@ gulp.task('serve', gulp.series('build', function() {
     dirs.source + '/_include/*.html',
     dirs.source + '/blocks/**/*.html',
   ], gulp.series('html', reloader));
-  gulp.watch(blocks.less, gulp.series('less'));
-  gulp.watch('src/docs-files/docs.less', gulp.series('less:docs'));
+  gulp.watch(blocks.scss, gulp.series('scss'));
+  gulp.watch('src/docs-files/docs.scss', gulp.series('scss:docs'));
   if(blocks.img) {
     gulp.watch(blocks.img, gulp.series('img', reloader));
   }
@@ -312,14 +312,14 @@ function reloader(done) {
 function getComponentsFiles() {
   // Создаем объект для служебных данных
   let сomponentsFilesList = {
-    less: [],          // тут будут LESS-файлы в том же порядке, в котором они подключены
-    js: [],            // тут будут JS-файлы в том же порядке, в котором подключены LESS-файлы
+    scss: [],          // тут будут SCSS-файлы в том же порядке, в котором они подключены
+    js: [],            // тут будут JS-файлы в том же порядке, в котором подключены SCSS-файлы
     img: [],           // тут будет массив из «путь_до_блока/img/*.{jpg,jpeg,gif,png,svg}» для всех импортируемых блоков
-    additionalCss: [], // тут будут добавочные CSS-файлы блоков в том же порядке, в котором подключены LESS-файлы
+    additionalCss: [], // тут будут добавочные CSS-файлы блоков в том же порядке, в котором подключены SCSS-файлы
   };
   let jsLibs = []; // тут будут сторонние JS-файлы из используемых блоков (библиотеки), потом вставим в начало сomponentsFilesList.js
   // Читаем файл диспетчера подключений
-  let connectManager = fs.readFileSync(dirs.source + '/less/style.less', 'utf8');
+  let connectManager = fs.readFileSync(dirs.source + '/scss/style.scss', 'utf8');
   // Делаем из строк массив, фильтруем массив, оставляя только строки с незакомментированными импортами
   let fileSystem = connectManager.split('\n').filter(function(item) {
     if(/^(\s*)@import/.test(item)) return true;
@@ -328,7 +328,7 @@ function getComponentsFiles() {
   // Обойдём массив и запишем его части в объект результирующей переменной
   fileSystem.forEach(function(item, i) {
     // Попробуем вычленить блок из строки импорта
-    let componentData = /\/blocks\/(.+?)(\/)(.+?)(?=.(less|css))/g.exec(item);
+    let componentData = /\/blocks\/(.+?)(\/)(.+?)(?=.(scss|css))/g.exec(item);
     // Если это блок и получилось извлечь имя файла
     if (componentData !== null && componentData[3]) {
       // Название блока (название папки)
@@ -343,8 +343,8 @@ function getComponentsFiles() {
       let cssFile = blockDir + '/' + componentFileName + '.css';
       // Папка с картинками, которую нужно взять в обработку, если она существует
       let imagesDir = blockDir + '/img';
-      // Добавляем в массив с результатом LESS-файл
-      сomponentsFilesList.less.push(dirs.source + componentData[0] + '.' + componentData[4]);
+      // Добавляем в массив с результатом SCSS-файл
+      сomponentsFilesList.scss.push(dirs.source + componentData[0] + '.' + componentData[4]);
       // Если в папке блока есть сторонние JS-файлы — добавляем их в массив с результатом (это библиотеки)
       let blockFiles = fs.readdirSync(blockDir); // список файлов
       let reg = new RegExp(componentName + '(\.|--)', '');
@@ -370,8 +370,8 @@ function getComponentsFiles() {
       }
     }
   });
-  // Добавим глобальныe LESS-файлы в массив с обрабатываемыми LESS-файлами
-  сomponentsFilesList.less.push(dirs.source + '/less/**/*.less');
+  // Добавим глобальныe SCSS-файлы в массив с обрабатываемыми SCSS-файлами
+  сomponentsFilesList.scss.push(dirs.source + '/scss/**/*.scss');
   // Добавим глобальный JS-файл в начало массива с обрабатываемыми JS-файлами
   if(fileExistAndHasContent(dirs.source + '/js/global-script.js')) {
     сomponentsFilesList.js.unshift(dirs.source + '/js/global-script.js');
