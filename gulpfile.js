@@ -7,7 +7,7 @@ const ghPagesUrl = pjson.config.ghPages;
 
 // Зависимости проекта
 const gulp = require('gulp');
-const less = require('gulp-less');
+const scss = require('gulp-sass');
 const debug = require('gulp-debug');
 const sourcemaps = require('gulp-sourcemaps');
 const cleanss = require('gulp-cleancss');
@@ -60,9 +60,9 @@ if(blocks.additionalCss.length) {
 
 
 // Компиляция LESS
-gulp.task('less', function () {
+gulp.task('scss', function () {
   console.log('---------- Компиляция LESS');
-  return gulp.src(dirs.source + '/less/style.less')
+  return gulp.src(dirs.source + '/scss/style.scss')
     .pipe(gulpIf(isDev, sourcemaps.init()))
     .pipe(debug({title: "LESS:"}))
     .pipe(less())

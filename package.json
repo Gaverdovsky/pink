@@ -43,7 +43,7 @@
     "mkdirp": "^0.5.1"
   },
   "config": {
-    "ghPages": "http://nicothin.github.io/NTH-start-project/blocks_library.html",
+    "ghPages": "http://valdemaar.github.io/pink/blocks_library.html",
     "directories": {
       "source": "./src",
       "build": "./build"
